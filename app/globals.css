@@ -1051,6 +1051,13 @@ body {
     border-radius: var(--radius-sm);
     text-align: center;
   }
+
+  /* Full-screen video recording on mobile */
+  .capturer-video-wrapper {
+    height: calc(100svh - 180px);
+    min-height: 300px;
+    border-radius: 8px;
+  }
 }
 
 /* ========== MediaCapturer ========== */
@@ -1069,7 +1076,10 @@ body {
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: #111;
-  aspect-ratio: 16/9;
+  width: 100%;
+  height: calc(100svh - 220px);
+  min-height: 400px;
+  max-height: 100svh;
 }
 
 .capturer-video {

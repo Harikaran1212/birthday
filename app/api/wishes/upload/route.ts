@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import cloudinary from '@/lib/cloudinary';
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,28 +16,47 @@ export async function POST(req: NextRequest) {
       'audio/webm', 'audio/ogg', 'audio/wav', 'audio/mpeg',
     ];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ success: false, error: 'Invalid file type. Please upload MP4, WebM, or OGG.' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'Invalid file type. Please upload MP4, WebM, or OGG.' },
+        { status: 400 }
+      );
     }
 
     // Max 100MB
     if (file.size > 100 * 1024 * 1024) {
-      return NextResponse.json({ success: false, error: 'File too large. Max 100MB.' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'File too large. Max 100MB.' },
+        { status: 400 }
+      );
     }
 
+    // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    await mkdir(uploadDir, { recursive: true });
+    // Determine resource type
+    const isAudio = file.type.startsWith('audio/');
+    const resourceType = isAudio ? 'video' : 'video'; // Cloudinary uses 'video' for both audio and video
 
-    const timestamp = Date.now();
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const filename = `${timestamp}_${safeName}`;
-    const filePath = path.join(uploadDir, filename);
+    // Upload to Cloudinary via upload_stream
+    const videoUrl = await new Promise<string>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: resourceType,
+          folder: 'birthday-wishes',
+          format: isAudio ? 'webm' : undefined,
+        },
+        (error, result) => {
+          if (error || !result) {
+            reject(error || new Error('Cloudinary upload failed'));
+          } else {
+            resolve(result.secure_url);
+          }
+        }
+      );
+      uploadStream.end(buffer);
+    });
 
-    await writeFile(filePath, buffer);
-
-    const videoUrl = `/uploads/${filename}`;
     return NextResponse.json({ success: true, videoUrl });
   } catch (error) {
     console.error('Upload error:', error);

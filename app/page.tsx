@@ -20,14 +20,14 @@ export default function HomePage() {
             You deserve every beautiful thing life has to offer! 🌸
           </p>
 
-          {/* <div className="hero-buttons">
+         <div className="hero-buttons">
             <Link href="/memories" className="btn-primary">
               📸 View Memories
             </Link>
             <Link href="/wishes" className="btn-secondary">
               💌 See Wishes
             </Link>
-          </div> */}
+          </div> 
         </div>
 
         {/* Decorative balloons */}
